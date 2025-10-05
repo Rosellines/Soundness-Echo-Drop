@@ -1,6 +1,5 @@
-![Soundness](logo.png)
 <p align="center">
-  <img src="logo.png"/>
+  <img src="logo.png" width="450" height="450"/>
 </p>
 
 ### 🔥 Soundness - Echo Drop 🔥 
