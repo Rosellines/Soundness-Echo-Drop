@@ -1,4 +1,7 @@
 ![Soundness](logo.png)
+<p align="center">
+  <img src="https://imgur.com/o0pXYsZ" />
+</p>
 
 ### 🔥 Soundness - Echo Drop 🔥 
 As the name suggests, Soundness Echo Drop.
