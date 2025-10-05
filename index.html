@@ -7,7 +7,7 @@
 <link rel="icon" href="logo.png" />
 <style>
   :root{
-    --page-bg: #ffffff; /* background putih */
+    --page-bg: #ffffff;
     --canvas-border: #010101;
     --accent: #a9ddd3;
     --block1: #5dade2;
@@ -16,61 +16,27 @@
     --text: #0a0a0a;
   }
   html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial;}
-  .top-left-logo{
-    position:fixed;left:24px;top:18px;display:flex;align-items:center;gap:12px;z-index:20;
-  }
+  .top-left-logo{position:fixed;left:24px;top:18px;display:flex;align-items:center;gap:12px;z-index:20;}
   .top-left-logo img{height:72px;width:auto;display:block;border-radius:8px;box-shadow:0 6px 18px rgba(1,1,1,0.15);}
   .top-left-logo h1{margin:0;font-size:24px;letter-spacing:0.6px;}
-  .page {
-    height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:40px 120px;
-    box-sizing:border-box;
-    gap:40px;
-  }
-
-  .stage {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
-  }
-  canvas#game {
-    background:#ffffff;
-    border:4px solid var(--canvas-border);
-    border-radius:8px;
-    width:360px;
-    height:720px;
-    image-rendering:pixelated;
-    box-shadow: 0 10px 30px rgba(1,1,1,0.25);
-  }
-
-  .sidebar {
-    width:260px;
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-  }
-  .card{
-    background:rgba(255,255,255,0.75);
-    border-radius:10px;
-    padding:12px;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-    color:var(--text);
-  }
+  .page{height:100%;display:flex;align-items:center;justify-content:center;padding:40px 120px;box-sizing:border-box;gap:40px;}
+  .stage{display:flex;align-items:center;justify-content:center;position:relative;}
+  canvas#game{background:#ffffff;border:4px solid var(--canvas-border);border-radius:8px;width:360px;height:720px;image-rendering:pixelated;box-shadow:0 10px 30px rgba(1,1,1,0.25);}
+  .overlay{position:absolute;inset:0;background:rgba(255,255,255,0.9);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;}
+  .overlay.show{display:flex;}
+  .btn{padding:6px 12px;border:none;border-radius:6px;background:var(--accent);cursor:pointer;}
+  .sidebar{width:260px;display:flex;flex-direction:column;gap:16px;}
+  .card{background:rgba(255,255,255,0.75);border-radius:10px;padding:12px;box-shadow:0 6px 14px rgba(0,0,0,0.08);color:var(--text);}
   .controls h2{margin:0 0 8px 0;font-size:14px;}
   .controls p{margin:0;font-size:13px;line-height:1.6;}
   .controls .kbd{display:inline-block;background:#ddd;padding:4px 8px;border-radius:6px;margin-right:6px;font-size:12px;box-shadow:inset 0 -2px 0 rgba(0,0,0,0.06);}
-  .score {font-weight:700;font-size:18px;text-align:center;padding:8px 0;}
-
-  footer {position:fixed;right:18px;bottom:18px;font-size:12px;color:#222;}
-  @media(max-width:980px){ .page {padding:20px;flex-direction:column;} canvas#game{width:280px;height:560px;} .sidebar{width:100%;max-width:360px;} .top-left-logo img{height:56px;} }
+  .score{font-weight:700;font-size:18px;text-align:center;padding:8px 0;}
+  footer{position:fixed;right:18px;bottom:18px;font-size:12px;color:#222;}
+  @media(max-width:980px){.page{padding:20px;flex-direction:column;}canvas#game{width:280px;height:560px;}.sidebar{width:100%;max-width:360px;}.top-left-logo img{height:56px;}}
 </style>
 </head>
 <body>
-  <div class="top-left-logo" aria-hidden="false">
+  <div class="top-left-logo">
     <img src="logo.png" alt="Echo Logo" />
     <div>
       <h1>ECHO DROP</h1>
@@ -79,26 +45,24 @@
   </div>
 
   <div class="page">
-    <div class="stage" role="application" aria-label="ECHO DROP game">
-      <canvas id="game" width="360" height="720"></canvas>
-      <div class="overlay" id="gameOverOverlay" aria-hidden="true">
+    <div class="stage">
+      <canvas id="game" width="10" height="20"></canvas>
+      <div class="overlay" id="gameOverOverlay">
         <div style="font-size:22px;font-weight:800">GAME OVER</div>
         <div id="finalScoreText" style="font-size:16px"></div>
         <div style="display:flex;gap:10px">
           <button class="btn" id="restartBtn">Restart</button>
-          <button class="btn" id="saveScoreBtn">Save Score</button>
         </div>
-        <div class="muted">Controls: ← → ↓ ↑ Space • Q rotate left</div>
       </div>
     </div>
 
-    <aside class="sidebar" aria-hidden="false">
+    <aside class="sidebar">
       <div class="card score" id="scoreBox">Score: 0</div>
-      <div class="card controls" aria-labelledby="controlsTitle">
-        <h2 id="controlsTitle">Controls</h2>
+      <div class="card controls">
+        <h2>Controls</h2>
         <p>
-          <span class="kbd">←</span> Move Left<br>
-          <span class="kbd">→</span> Move Right<br>
+          <span class="kbd">←</span> Left<br>
+          <span class="kbd">→</span> Right<br>
           <span class="kbd">↓</span> Soft Drop<br>
           <span class="kbd">↑</span> Rotate<br>
           <span class="kbd">Space</span> Hard Drop<br>
@@ -107,7 +71,7 @@
       </div>
       <div class="card" style="text-align:center">
         <div style="font-size:13px;font-weight:700">Audio Accessibility</div>
-        <div style="font-size:12px;margin-top:6px">Each block type has its unique sound. Move/rotate/drop trigger small cues — learn the blocks by ear.</div>
+        <div style="font-size:12px;margin-top:6px">Each block type has a unique sound cue. Move, rotate, and drop trigger sound feedback.</div>
       </div>
     </aside>
   </div>
@@ -117,19 +81,204 @@
 <script>
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-const COLS = 10;
-const ROWS = 20;
-const SCALE = 36;
-ctx.scale(SCALE, SCALE);
+const COLS = 10, ROWS = 20;
+ctx.scale(36, 36);
 
-const colors = [
-  null,
-  '#5dade2',
-  '#3498db',
-  '#1f618d'
-];
+const colors = [null, '#5dade2', '#3498db', '#1f618d'];
+const pieces = 'ILJOTSZ'.split('');
+let board = createMatrix(COLS, ROWS);
+let dropCounter = 0, dropInterval = 800;
+let lastTime = 0;
+let score = 0;
+const scoreBox = document.getElementById('scoreBox');
+const overlay = document.getElementById('gameOverOverlay');
+const finalScoreText = document.getElementById('finalScoreText');
 
-// semua kode JS tetap sama
+function playSound(type){
+  const freq = {1:440,2:554,3:659,4:784,5:880,6:988,7:1047}[Math.ceil(Math.random()*7)];
+  const ctxA = new AudioContext();
+  const osc = ctxA.createOscillator();
+  osc.frequency.value = freq;
+  osc.connect(ctxA.destination);
+  osc.start();
+  osc.stop(ctxA.currentTime + 0.1);
+}
+
+function createMatrix(w,h){
+  const m = [];
+  while(h--) m.push(new Array(w).fill(0));
+  return m;
+}
+
+function collide(board, player){
+  const [m,o] = [player.matrix, player.pos];
+  for(let y=0;y<m.length;y++){
+    for(let x=0;x<m[y].length;x++){
+      if(m[y][x]!==0 &&
+        (board[y+o.y] && board[y+o.y][x+o.x])!==0){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function merge(board, player){
+  player.matrix.forEach((row,y)=>{
+    row.forEach((value,x)=>{
+      if(value!==0){
+        board[y+player.pos.y][x+player.pos.x]=value;
+      }
+    });
+  });
+}
+
+function rotate(matrix,dir){
+  for(let y=0;y<matrix.length;y++){
+    for(let x=0;x<y;x++){
+      [matrix[x][y],matrix[y][x]]=[matrix[y][x],matrix[x][y]];
+    }
+  }
+  if(dir>0) matrix.forEach(row=>row.reverse());
+  else matrix.reverse();
+}
+
+function createPiece(type){
+  switch(type){
+    case 'T': return [[0,1,0],[1,1,1],[0,0,0]];
+    case 'O': return [[1,1],[1,1]];
+    case 'L': return [[0,2,0],[0,2,0],[0,2,2]];
+    case 'J': return [[0,3,0],[0,3,0],[3,3,0]];
+    case 'I': return [[0,4,0,0],[0,4,0,0],[0,4,0,0],[0,4,0,0]];
+    case 'S': return [[0,5,5],[5,5,0],[0,0,0]];
+    case 'Z': return [[6,6,0],[0,6,6],[0,0,0]];
+  }
+}
+
+const player = {
+  pos: {x:0,y:0},
+  matrix: null
+};
+
+function playerReset(){
+  const piecesList = 'ILJOTSZ';
+  const type = piecesList[Math.floor(Math.random()*piecesList.length)];
+  player.matrix = createPiece(type);
+  player.pos.y = 0;
+  player.pos.x = (COLS/2 | 0) - (player.matrix[0].length/2 | 0);
+  if(collide(board,player)){
+    board.forEach(row=>row.fill(0));
+    showGameOver();
+  }
+}
+
+function playerDrop(){
+  player.pos.y++;
+  if(collide(board,player)){
+    player.pos.y--;
+    merge(board,player);
+    playSound(2);
+    playerReset();
+    sweep();
+  }
+  dropCounter = 0;
+}
+
+function playerMove(dir){
+  player.pos.x += dir;
+  if(collide(board,player)){
+    player.pos.x -= dir;
+  } else playSound(1);
+}
+
+function playerRotate(dir){
+  const pos = player.pos.x;
+  let offset = 1;
+  rotate(player.matrix, dir);
+  while(collide(board,player)){
+    player.pos.x += offset;
+    offset = -(offset+(offset>0?1:-1));
+    if(offset>player.matrix[0].length){
+      rotate(player.matrix,-dir);
+      player.pos.x = pos;
+      return;
+    }
+  }
+  playSound(3);
+}
+
+function sweep(){
+  outer: for(let y=board.length-1;y>0;y--){
+    for(let x=0;x<board[y].length;x++){
+      if(board[y][x]===0){
+        continue outer;
+      }
+    }
+    const row = board.splice(y,1)[0].fill(0);
+    board.unshift(row);
+    y++;
+    score+=100;
+    scoreBox.textContent = "Score: " + score;
+  }
+}
+
+function drawMatrix(matrix, offset){
+  matrix.forEach((row,y)=>{
+    row.forEach((value,x)=>{
+      if(value!==0){
+        ctx.fillStyle = colors[value] || '#3498db';
+        ctx.fillRect(x+offset.x,y+offset.y,1,1);
+      }
+    });
+  });
+}
+
+function draw(){
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,COLS,ROWS);
+  drawMatrix(board,{x:0,y:0});
+  drawMatrix(player.matrix, player.pos);
+}
+
+function update(time=0){
+  const delta = time - lastTime;
+  lastTime = time;
+  dropCounter += delta;
+  if(dropCounter>dropInterval){
+    playerDrop();
+  }
+  draw();
+  requestAnimationFrame(update);
+}
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowLeft') playerMove(-1);
+  else if(e.key==='ArrowRight') playerMove(1);
+  else if(e.key==='ArrowDown') playerDrop();
+  else if(e.key==='ArrowUp') playerRotate(1);
+  else if(e.key==='q'||e.key==='Q') playerRotate(-1);
+  else if(e.key===' ') {
+    while(!collide(board,player)) player.pos.y++;
+    player.pos.y--;
+    playerDrop();
+  }
+});
+
+function showGameOver(){
+  finalScoreText.textContent = "Final Score: "+score;
+  overlay.classList.add('show');
+}
+
+document.getElementById('restartBtn').addEventListener('click',()=>{
+  overlay.classList.remove('show');
+  score = 0;
+  scoreBox.textContent="Score: 0";
+  board = createMatrix(COLS,ROWS);
+  playerReset();
+});
+
+playerReset();
+update();
 </script>
 </body>
 </html>
