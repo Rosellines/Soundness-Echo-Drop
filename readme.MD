@@ -1,6 +1,6 @@
 ![Soundness](logo.png)
 <p align="center">
-  <img src="https://imgur.com/o0pXYsZ"/>
+  <img src="logo.png"/>
 </p>
 
 ### 🔥 Soundness - Echo Drop 🔥 
