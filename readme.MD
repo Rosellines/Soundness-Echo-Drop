@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://imgur.com/o0pXYsZ" 
+       width="350" height="450" alt="Hacker Girl GIF" />
+</div>
 ### Soundness - Echo Drop
 As the name suggests, Soundness Echo Drop.
 This game's difficulty level is determined by the level of difficulty we create.
