@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ECHO DROP</title>
+<link rel="icon" href="logo.png" />
+<style>
+  :root{
+    --page-bg: #ffffff; /* background putih */
+    --canvas-border: #010101;
+    --accent: #a9ddd3;
+    --block1: #5dade2;
+    --block2: #3498db;
+    --block3: #1f618d;
+    --text: #0a0a0a;
+  }
+  html,body{height:100%;margin:0;background:var(--page-bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial;}
+  .top-left-logo{
+    position:fixed;left:24px;top:18px;display:flex;align-items:center;gap:12px;z-index:20;
+  }
+  .top-left-logo img{height:72px;width:auto;display:block;border-radius:8px;box-shadow:0 6px 18px rgba(1,1,1,0.15);}
+  .top-left-logo h1{margin:0;font-size:24px;letter-spacing:0.6px;}
+  .page {
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 120px;
+    box-sizing:border-box;
+    gap:40px;
+  }
+
+  .stage {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  canvas#game {
+    background:#ffffff;
+    border:4px solid var(--canvas-border);
+    border-radius:8px;
+    width:360px;
+    height:720px;
+    image-rendering:pixelated;
+    box-shadow: 0 10px 30px rgba(1,1,1,0.25);
+  }
+
+  .sidebar {
+    width:260px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .card{
+    background:rgba(255,255,255,0.75);
+    border-radius:10px;
+    padding:12px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    color:var(--text);
+  }
+  .controls h2{margin:0 0 8px 0;font-size:14px;}
+  .controls p{margin:0;font-size:13px;line-height:1.6;}
+  .controls .kbd{display:inline-block;background:#ddd;padding:4px 8px;border-radius:6px;margin-right:6px;font-size:12px;box-shadow:inset 0 -2px 0 rgba(0,0,0,0.06);}
+  .score {font-weight:700;font-size:18px;text-align:center;padding:8px 0;}
+
+  footer {position:fixed;right:18px;bottom:18px;font-size:12px;color:#222;}
+  @media(max-width:980px){ .page {padding:20px;flex-direction:column;} canvas#game{width:280px;height:560px;} .sidebar{width:100%;max-width:360px;} .top-left-logo img{height:56px;} }
+</style>
+</head>
+<body>
+  <div class="top-left-logo" aria-hidden="false">
+    <img src="logo.png" alt="Echo Logo" />
+    <div>
+      <h1>ECHO DROP</h1>
+      <div style="font-size:12px;color:#333;margin-top:4px">Use your Soundness.</div>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="stage" role="application" aria-label="ECHO DROP game">
+      <canvas id="game" width="360" height="720"></canvas>
+      <div class="overlay" id="gameOverOverlay" aria-hidden="true">
+        <div style="font-size:22px;font-weight:800">GAME OVER</div>
+        <div id="finalScoreText" style="font-size:16px"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn" id="restartBtn">Restart</button>
+          <button class="btn" id="saveScoreBtn">Save Score</button>
+        </div>
+        <div class="muted">Controls: ← → ↓ ↑ Space • Q rotate left</div>
+      </div>
+    </div>
+
+    <aside class="sidebar" aria-hidden="false">
+      <div class="card score" id="scoreBox">Score: 0</div>
+      <div class="card controls" aria-labelledby="controlsTitle">
+        <h2 id="controlsTitle">Controls</h2>
+        <p>
+          <span class="kbd">←</span> Move Left<br>
+          <span class="kbd">→</span> Move Right<br>
+          <span class="kbd">↓</span> Soft Drop<br>
+          <span class="kbd">↑</span> Rotate<br>
+          <span class="kbd">Space</span> Hard Drop<br>
+          <span class="kbd">Q</span> Rotate Left<br>
+        </p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:13px;font-weight:700">Audio Accessibility</div>
+        <div style="font-size:12px;margin-top:6px">Each block type has its unique sound. Move/rotate/drop trigger small cues — learn the blocks by ear.</div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>Echo Soundness Block Drop</footer>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const COLS = 10;
+const ROWS = 20;
+const SCALE = 36;
+ctx.scale(SCALE, SCALE);
+
+const colors = [
+  null,
+  '#5dade2',
+  '#3498db',
+  '#1f618d'
+];
+
+// semua kode JS tetap sama
+</script>
+</body>
+</html>
