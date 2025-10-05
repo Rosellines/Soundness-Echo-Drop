@@ -9,3 +9,5 @@ In the next update, I might make this game playable even for the visually impair
 Because in some cases, they feel lonely in their own world, so this is one way we entertain them.
 
 I present to you, my friends, Soundness - Echo Drop.
+
+https://soundness-echo-drop.vercel.app/
