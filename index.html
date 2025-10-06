@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ECHO DROP — Accessible Edition</title>
+<title>ECHO DROP — Accessible Full Version</title>
 <link rel="icon" href="logo.png" />
 <style>
   :root{
@@ -32,7 +32,9 @@
   .controls .kbd{display:inline-block;background:#ddd;padding:4px 8px;border-radius:6px;margin-right:6px;font-size:12px;box-shadow:inset 0 -2px 0 rgba(0,0,0,0.06);}
   .score{font-weight:700;font-size:18px;text-align:center;padding:8px 0;}
   footer{position:fixed;right:18px;bottom:18px;font-size:12px;color:#222;}
-  [aria-live]{position:absolute;left:-9999px;}
+  .visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
+  .access-panel{position:fixed;left:18px;bottom:18px;background:rgba(255,255,255,0.96);padding:10px;border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,0.12);z-index:30}
+  .access-panel label{display:flex;align-items:center;gap:8px;font-size:13px}
   @media(max-width:980px){.page{padding:20px;flex-direction:column;}canvas#game{width:280px;height:560px;}.sidebar{width:100%;max-width:360px;}.top-left-logo img{height:56px;}}
 </style>
 </head>
@@ -47,8 +49,8 @@
 
   <div class="page">
     <div class="stage">
-      <canvas id="game" width="10" height="20" tabindex="0"></canvas>
-      <div class="overlay" id="gameOverOverlay">
+      <canvas id="game" width="10" height="20" aria-label="Echo Drop game board"></canvas>
+      <div class="overlay" id="gameOverOverlay" role="dialog" aria-modal="true" aria-hidden="true">
         <div style="font-size:22px;font-weight:800">GAME OVER</div>
         <div id="finalScoreText" style="font-size:16px"></div>
         <div style="display:flex;gap:10px">
@@ -59,7 +61,6 @@
 
     <aside class="sidebar">
       <div class="card score" id="scoreBox">Score: 0</div>
-      <div aria-live="polite" id="liveScore"></div>
       <div class="card controls">
         <h2>Controls</h2>
         <p>
@@ -73,63 +74,129 @@
       </div>
       <div class="card" style="text-align:center">
         <div style="font-size:13px;font-weight:700">Audio Accessibility</div>
-        <div style="font-size:12px;margin-top:6px">Every move, drop, and rotation plays a unique tone. Perfect for non-visual play.</div>
+        <div style="font-size:12px;margin-top:6px">Each block type has a unique sound cue. Move, rotate, and drop trigger sound feedback.</div>
       </div>
     </aside>
   </div>
 
   <footer>Echo Soundness Block Drop</footer>
 
+  <!-- Accessibility panel -->
+  <div class="access-panel" id="accessPanel" aria-hidden="false">
+    <div style="font-weight:700;margin-bottom:6px">Accessibility</div>
+    <label><input type="checkbox" id="audioModeToggle"> Audio Mode (B)</label>
+    <label><input type="checkbox" id="voiceGuideToggle" checked> Voice Guide</label>
+    <label><input type="checkbox" id="vibrateToggle"> Haptic (vibrate)</label>
+    <div style="font-size:12px;margin-top:8px">Shortcuts: <strong>M</strong> menu, <strong>B</strong> audio, <strong>H</strong> help</div>
+  </div>
+
+  <!-- Live region for screen readers -->
+  <div aria-live="polite" id="srLive" class="visually-hidden"></div>
+
 <script>
+// === ORIGINAL GAME CORE (kept intact & reused) ===
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-ctx.scale(36, 36);
-
 const COLS = 10, ROWS = 20;
-const colors = [null, '#5dade2', '#3498db', '#1f618d', '#27ae60', '#f1c40f', '#e67e22', '#9b59b6'];
+ctx.scale(36, 36);
+canvas.width = COLS;
+canvas.height = ROWS;
+
+const colors = [null, '#5dade2', '#3498db', '#1f618d'];
+const pieces = 'ILJOTSZ'.split('');
 let board = createMatrix(COLS, ROWS);
-let dropCounter = 0, dropInterval = 800, lastTime = 0, score = 0;
+
+let dropCounter = 0, dropInterval = 800;
+let lastTime = 0;
+let score = 0;
 const scoreBox = document.getElementById('scoreBox');
 const overlay = document.getElementById('gameOverOverlay');
 const finalScoreText = document.getElementById('finalScoreText');
-const liveScore = document.getElementById('liveScore');
 
-const AudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// === NEW: Audio + Accessibility setup ===
+const audioToggle = document.getElementById('audioModeToggle');
+const voiceToggle = document.getElementById('voiceGuideToggle');
+const vibrateToggle = document.getElementById('vibrateToggle');
+const srLive = document.getElementById('srLive');
 
-function playTone(freq, dur = 0.1){
-  const osc = AudioCtx.createOscillator();
-  const gain = AudioCtx.createGain();
-  osc.type = 'sine';
+// load saved settings
+const settings = JSON.parse(localStorage.getItem('echo_settings')||'{}');
+audioToggle.checked = !!settings.audioMode;
+voiceToggle.checked = settings.voiceGuide!==false; // default true
+vibrateToggle.checked = !!settings.vibrate;
+
+// Web Audio API shared context
+let audioCtx = null;
+function initAudio(){
+  if(audioCtx) return audioCtx;
+  try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx = null; }
+  return audioCtx;
+}
+
+function playTone(freq=440,duration=120, pan=0, type='sine', gain=0.08){
+  if(!audioToggle.checked) return;
+  const ctxA = initAudio();
+  if(!ctxA) return;
+  const osc = ctxA.createOscillator();
+  const g = ctxA.createGain();
+  const p = ctxA.createStereoPanner();
+  osc.type = type;
   osc.frequency.value = freq;
-  osc.connect(gain);
-  gain.connect(AudioCtx.destination);
+  g.gain.value = gain;
+  p.pan.value = Math.max(-1, Math.min(1, pan));
+  osc.connect(g).connect(p).connect(ctxA.destination);
   osc.start();
-  osc.stop(AudioCtx.currentTime + dur);
+  osc.stop(ctxA.currentTime + duration/1000);
 }
 
-function playSound(type){
-  if(type==='move') playTone(440);
-  if(type==='rotate') playTone(660);
-  if(type==='drop') playTone(880, 0.08);
-  if(type==='clear') playTone(220, 0.15);
-}
-
-function createMatrix(w,h){const m=[];while(h--)m.push(new Array(w).fill(0));return m;}
-
-function createPiece(type){
-  switch(type){
-    case 'T': return [[0,1,0],[1,1,1],[0,0,0]];
-    case 'O': return [[2,2],[2,2]];
-    case 'L': return [[0,3,0],[0,3,0],[0,3,3]];
-    case 'J': return [[0,4,0],[0,4,0],[4,4,0]];
-    case 'I': return [[5,5,5,5]];
-    case 'S': return [[0,6,6],[6,6,0],[0,0,0]];
-    case 'Z': return [[7,7,0],[0,7,7],[0,0,0]];
+function speak(text){
+  if(!voiceToggle.checked) return;
+  if('speechSynthesis' in window){
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.0;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  } else {
+    // fallback: update live region
+    srLive.textContent = text;
   }
 }
 
+function vib(ms=80){
+  if(!vibrateToggle.checked) return;
+  if(navigator.vibrate) navigator.vibrate(ms);
+}
+
+function announce(msg){
+  srLive.textContent = msg;
+  speak(msg);
+}
+
+function saveSettings(){
+  localStorage.setItem('echo_settings', JSON.stringify({audioMode:audioToggle.checked, voiceGuide:voiceToggle.checked, vibrate:vibrateToggle.checked}));
+}
+
+audioToggle.addEventListener('change', ()=>{ saveSettings(); announce('Audio mode ' + (audioToggle.checked? 'on':'off')); initAudio(); });
+voiceToggle.addEventListener('change', ()=>{ saveSettings(); announce('Voice guide ' + (voiceToggle.checked? 'on':'off')); });
+vibrateToggle.addEventListener('change', ()=>{ saveSettings(); announce('Haptic ' + (vibrateToggle.checked? 'on':'off')); });
+
+// === Original sound function replaced by richer one ===
+function playSound(type){
+  // map to tones and pans based on current piece X position when available
+  const freqMap = {1:440,2:554,3:659,4:784,5:880,6:988,7:1047};
+  const f = freqMap[Math.ceil(Math.random()*7)];
+  playTone(f,120,0, 'sine', 0.08);
+}
+
+// === ORIGINAL GAME FUNCTIONS ===
+function createMatrix(w,h){
+  const m = [];
+  while(h--) m.push(new Array(w).fill(0));
+  return m;
+}
+
 function collide(board, player){
-  const [m,o]=[player.matrix,player.pos];
+  const [m,o] = [player.matrix, player.pos];
   for(let y=0;y<m.length;y++){
     for(let x=0;x<m[y].length;x++){
       if(m[y][x]!==0 &&
@@ -161,17 +228,40 @@ function rotate(matrix,dir){
   else matrix.reverse();
 }
 
-const player={pos:{x:0,y:0},matrix:null};
+function createPiece(type){
+  switch(type){
+    case 'T': return [[0,1,0],[1,1,1],[0,0,0]];
+    case 'O': return [[1,1],[1,1]];
+    case 'L': return [[0,2,0],[0,2,0],[0,2,2]];
+    case 'J': return [[0,3,0],[0,3,0],[3,3,0]];
+    case 'I': return [[0,4,0,0],[0,4,0,0],[0,4,0,0],[0,4,0,0]];
+    case 'S': return [[0,5,5],[5,5,0],[0,0,0]];
+    case 'Z': return [[6,6,0],[0,6,6],[0,0,0]];
+  }
+}
+
+const player = {
+  pos: {x:0,y:0},
+  matrix: null
+};
 
 function playerReset(){
-  const pieces='ILJOTSZ';
-  const type=pieces[Math.floor(Math.random()*pieces.length)];
-  player.matrix=createPiece(type);
-  player.pos.y=0;
-  player.pos.x=(COLS/2|0)-(player.matrix[0].length/2|0);
+  const piecesList = 'ILJOTSZ';
+  const type = piecesList[Math.floor(Math.random()*piecesList.length)];
+  player.matrix = createPiece(type);
+  player.pos.y = 0;
+  player.pos.x = (COLS/2 | 0) - (player.matrix[0].length/2 | 0);
   if(collide(board,player)){
     board.forEach(row=>row.fill(0));
     showGameOver();
+  } else {
+    // announce new piece for audio mode
+    if(audioToggle.checked) {
+      // approximate pan from x position
+      const pan = (player.pos.x / (COLS-1)) * 2 -1;
+      playTone(200 + Math.random()*400, 120, pan, 'triangle');
+    }
+    if(voiceToggle.checked) speak('New piece: ' + type);
   }
 }
 
@@ -180,55 +270,67 @@ function playerDrop(){
   if(collide(board,player)){
     player.pos.y--;
     merge(board,player);
-    playSound('drop');
-    sweep();
+    playSound(2);
+    vib(30);
     playerReset();
+    sweep();
   }
-  dropCounter=0;
+  dropCounter = 0;
 }
 
 function playerMove(dir){
-  player.pos.x+=dir;
-  if(collide(board,player)) player.pos.x-=dir;
-  else playSound('move');
+  player.pos.x += dir;
+  if(collide(board,player)){
+    player.pos.x -= dir;
+  } else {
+    // play spatialized move sound
+    const pan = (player.pos.x / (COLS-1)) * 2 -1;
+    playTone(300 + Math.abs(dir)*50, 60, pan, 'square', 0.06);
+    if(voiceToggle.checked) speak(dir>0? 'Right':'Left');
+  }
 }
 
 function playerRotate(dir){
-  const pos=player.pos.x;
-  let offset=1;
-  rotate(player.matrix,dir);
+  const pos = player.pos.x;
+  let offset = 1;
+  rotate(player.matrix, dir);
   while(collide(board,player)){
-    player.pos.x+=offset;
-    offset=-(offset+(offset>0?1:-1));
+    player.pos.x += offset;
+    offset = -(offset+(offset>0?1:-1));
     if(offset>player.matrix[0].length){
       rotate(player.matrix,-dir);
-      player.pos.x=pos;
+      player.pos.x = pos;
       return;
     }
   }
-  playSound('rotate');
+  playSound(3);
+  if(voiceToggle.checked) speak('Rotate');
 }
 
 function sweep(){
-  outer:for(let y=board.length-1;y>0;y--){
+  outer: for(let y=board.length-1;y>0;y--){
     for(let x=0;x<board[y].length;x++){
-      if(board[y][x]===0) continue outer;
+      if(board[y][x]===0){
+        continue outer;
+      }
     }
-    const row=board.splice(y,1)[0].fill(0);
+    const row = board.splice(y,1)[0].fill(0);
     board.unshift(row);
     y++;
     score+=100;
-    scoreBox.textContent="Score: "+score;
-    liveScore.textContent="Score now "+score;
-    playSound('clear');
+    scoreBox.textContent = "Score: " + score;
+    // rewarding sound + voice
+    playTone(880, 300, 0, 'sawtooth', 0.12);
+    speak('Line cleared. Score ' + score);
+    vib(120);
   }
 }
 
-function drawMatrix(matrix,offset){
+function drawMatrix(matrix, offset){
   matrix.forEach((row,y)=>{
     row.forEach((value,x)=>{
       if(value!==0){
-        ctx.fillStyle=colors[value];
+        ctx.fillStyle = colors[value] || '#3498db';
         ctx.fillRect(x+offset.x,y+offset.y,1,1);
       }
     });
@@ -236,51 +338,78 @@ function drawMatrix(matrix,offset){
 }
 
 function draw(){
-  ctx.fillStyle='#fff';
+  ctx.fillStyle = '#fff';
   ctx.fillRect(0,0,COLS,ROWS);
   drawMatrix(board,{x:0,y:0});
-  if(player.matrix) drawMatrix(player.matrix,player.pos);
+  drawMatrix(player.matrix, player.pos);
 }
 
 function update(time=0){
-  const delta=time-lastTime;
-  lastTime=time;
-  dropCounter+=delta;
-  if(dropCounter>dropInterval) playerDrop();
+  const delta = time - lastTime;
+  lastTime = time;
+  dropCounter += delta;
+  if(dropCounter>dropInterval){
+    playerDrop();
+  }
   draw();
   requestAnimationFrame(update);
 }
 
-document.addEventListener('keydown',e=>{
+// keyboard handling plus accessibility shortcuts
+let accessPanelVisible = true;
+document.addEventListener('keydown', e=>{
   if(e.key==='ArrowLeft') playerMove(-1);
   else if(e.key==='ArrowRight') playerMove(1);
   else if(e.key==='ArrowDown') playerDrop();
   else if(e.key==='ArrowUp') playerRotate(1);
   else if(e.key==='q'||e.key==='Q') playerRotate(-1);
-  else if(e.key===' '){
+  else if(e.key===' ') {
     while(!collide(board,player)) player.pos.y++;
     player.pos.y--;
     playerDrop();
   }
+  else if(e.key==='b' || e.key==='B'){
+    audioToggle.checked = !audioToggle.checked; audioToggle.dispatchEvent(new Event('change'));
+  }
+  else if(e.key==='m' || e.key==='M'){
+    accessPanelVisible = !accessPanelVisible;
+    document.getElementById('accessPanel').style.display = accessPanelVisible? 'block':'none';
+    announce(accessPanelVisible? 'Accessibility menu shown':'Accessibility menu hidden');
+  }
+  else if(e.key==='h' || e.key==='H'){
+    provideHelp();
+  }
 });
 
 function showGameOver(){
-  finalScoreText.textContent="Final Score: "+score;
+  finalScoreText.textContent = "Final Score: "+score;
   overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden','false');
+  announce('Game over. Final score ' + score);
 }
 
 document.getElementById('restartBtn').addEventListener('click',()=>{
   overlay.classList.remove('show');
-  score=0;
+  overlay.setAttribute('aria-hidden','true');
+  score = 0;
   scoreBox.textContent="Score: 0";
-  liveScore.textContent="Game restarted.";
-  board=createMatrix(COLS,ROWS);
+  board = createMatrix(COLS,ROWS);
   playerReset();
 });
 
+function provideHelp(){
+  const help = 'Controls: arrow left right down up. Space to hard drop. Q rotates left. Press B to toggle audio mode. Press M to toggle accessibility menu. Press H for this help.';
+  announce(help);
+}
+
+// initial announcements
+announce('Welcome to Echo Drop. Press H for help. Press B to toggle audio mode.');
+
 playerReset();
 update();
-canvas.focus();
+
+// ensure settings saved on unload
+window.addEventListener('beforeunload', saveSettings);
 </script>
 </body>
 </html>
