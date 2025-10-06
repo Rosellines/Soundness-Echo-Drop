@@ -19,14 +19,14 @@ https://soundness-echo-drop.vercel.app/
 
 # ECHO DROP — Accessible Block Drop Game
 
-Echo Drop adalah game block drop (Tetris-style) dengan fitur aksesibilitas audio dan visual.
+Echo Drop is a Tetris-style block drop game with enhanced audio and visual accessibility features.
 
-## Fitur Utama
+## Key Features
 
-- **Gameplay Klasik:** Block I, L, J, O, T, S, Z; kontrol arrow keys, Space, Q, P.
-- **Audio Feedback:** Suara unik untuk gerak, rotasi, drop, dan baris terhapus.
-- **Voice Guide:** Membaca informasi penting seperti block baru, baris terhapus, dan skor.
-- **Haptic Feedback:** Vibrasi saat block dijatuhkan atau baris terhapus.
-- **Panel Aksesibilitas:** Toggle Audio, Voice Guide, Haptic; shortcut keyboard B, M, H.
-- **Skor & Overlay:** Menampilkan skor real-time dan Game Over overlay dengan restart.
-- **Pengaturan Tersimpan:** Preferensi pengguna otomatis disimpan di browser.
+- **Classic Gameplay:** Blocks I, L, J, O, T, S, Z; controls include arrow keys, Space, Q, and P.
+- **Audio Feedback:** Unique sounds for moving, rotating, dropping blocks, and clearing lines.
+- **Voice Guide:** Announces important events like new blocks, line clears, and score updates.
+- **Haptic Feedback:** Vibrates when blocks are dropped or lines are cleared (if supported).
+- **Accessibility Panel:** Toggle Audio, Voice Guide, and Haptic feedback; keyboard shortcuts B, M, H.
+- **Score & Overlay:** Real-time score display and Game Over overlay with restart option.
+- **Saved Settings:** User preferences are automatically stored in the browser.
