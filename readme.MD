@@ -15,4 +15,3 @@ Because in some cases, they feel lonely in their own world, so this is one way w
 I present to you, my friends, Soundness - Echo Drop.
 
 https://soundness-echo-drop.vercel.app/
-https://x.com/Mikasa_Enix/status/1974973228255994088
